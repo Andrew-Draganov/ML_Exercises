@@ -157,7 +157,7 @@ if __name__ == '__main__':
             )
             augmentation_results.append(finetune_test_accs[-1])
 
-        augmentation_results = np.squeeze(np.array(augmentation_results))
+        augmentation_results = np.array(augmentation_results)
         all_augmentation_results[aug_str] = augmentation_results
 
     plot_augmentation_results(all_augmentation_results, args.pre_train_dataset, args.finetune_dataset)

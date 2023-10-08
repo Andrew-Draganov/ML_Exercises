@@ -63,8 +63,6 @@ def test_classification(network, test_losses, test_accs, dataset, n_batches, for
     network.eval()
     with torch.no_grad():
         for batch_counter, (data, target) in enumerate(data_loader):
-            if batch_size == -1:
-                batch_size = len(data)
             if batch_counter > n_batches or len(data) < batch_size:
                 break
             output = forward_call(data)
@@ -88,9 +86,10 @@ def train(
     transform=None,
     train_dataset=None,
     test_dataset=None,
-    test_during_training=True,
+    test_during_training=False,
     test_forward_call=None,
-    plot_train_curves=True
+    plot_train_curves=False,
+    batch_size=8
 ):
     '''
     Train the model (either pretraining or finetuning).
@@ -115,7 +114,7 @@ def train(
                     forward_call,
                     optimizer,
                     n_classes,
-                    batch_size=len(data),
+                    batch_size=batch_size,
                 )
                 losses.append(loss)
                 accs.append(acc)
@@ -131,9 +130,9 @@ def train(
         
     test_classification(network, test_losses, test_accs, test_dataset, n_batches, test_forward_call)
     test_inds.append(len(losses))
-    losses, accs = np.array([losses]), np.array([accs])
-    test_losses, test_accs = np.array([test_losses]), np.array([test_accs])
-    test_inds = np.array([test_inds])
+    losses, accs = np.array(losses), np.array(accs)
+    test_losses, test_accs = np.array(test_losses), np.array(test_accs)
+    test_inds = np.array(test_inds)
 
     if plot_train_curves:
         plot_train_test(losses, test_losses, test_inds, titles=['Loss'])

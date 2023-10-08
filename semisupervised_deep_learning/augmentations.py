@@ -31,6 +31,9 @@ AUGMENTATION_DICT = {
 }
 
 def augment(augmentation, batch, labels, n_classes, transform=None):
+    if augmentation is None:
+        augmentation = no_aug
+
     batch_size = len(batch)
     new_batch = np.zeros_like(batch)
     merge_indices = np.zeros(batch_size, dtype=np.int32)
