@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 
 from utils import running_mean
 from augmentations import augment, AUGMENTATION_DICT
+from get_data import PRETRAIN_SUBSAMPLE_SIZES
 
 def plot_images(data_loader, batch_size, augmentation_name, n_classes):
     train_generator = enumerate(data_loader)
@@ -36,6 +37,9 @@ def plot_train_test(
     color='blue',
     loc='upper right'
 ):
+    """
+    Plot train/test curves for a single training loop.
+    """
     all_train_vals = np.array(all_train_vals)
     if all_test_vals is None and all_test_inds is None:
         all_test_vals = np.ones_like(all_train_vals) * -1
@@ -70,3 +74,20 @@ def plot_train_test(
             plt.title(titles[i])
     plt.show()
     plt.close()
+
+def plot_augmentation_results(all_aug_results, pretrain_data_str, finetune_data_str):
+    """
+    Given results across data samples for the three augmentations, plot results that show finetune accuracies.
+    """
+    plt.xscale('log')
+    plt.xticks(PRETRAIN_SUBSAMPLE_SIZES, labels=PRETRAIN_SUBSAMPLE_SIZES)
+    plt.ylim([0, 1.1])
+
+    plt.ylabel('Finetune accuracy on {} dataset'.format(finetune_data_str))
+    plt.xlabel('Number of samples per class for {} pretraining'.format(pretrain_data_str))
+
+    plt.plot(PRETRAIN_SUBSAMPLE_SIZES, all_aug_results['no_aug'], c='b', marker='.', label='No Aug.')
+    plt.plot(PRETRAIN_SUBSAMPLE_SIZES, all_aug_results['mixup'], c='g', marker='.', label='Mixup')
+    plt.plot(PRETRAIN_SUBSAMPLE_SIZES, all_aug_results['collage'], c='r', marker='.', label='Collage')
+    plt.legend()
+    plt.show()

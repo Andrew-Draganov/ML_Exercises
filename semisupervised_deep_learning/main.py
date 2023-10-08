@@ -17,7 +17,7 @@ from get_data import \
         NUM_CLASSES_DICT
 from augmentations import collage, mixup, no_aug, augment, AUGMENTATION_DICT
 from utils import floating_point_nll_loss
-from plotting import plot_images
+from plotting import plot_images, plot_augmentation_results
 from network_training import train
 from network import Net
 
@@ -39,12 +39,6 @@ if __name__ == '__main__':
         help='Dataset to run pre-training on'
     )
     parser.add_argument(
-        '--augmentation',
-        type=str,
-        default='no_aug',
-        help='Select which augmentation to apply to the dataset during pre-training'
-    )
-    parser.add_argument(
         '--batch-size',
         type=int,
         default=8,
@@ -54,7 +48,8 @@ if __name__ == '__main__':
         '--test-during-training',
         action='store_true', # If `--test-during-training` is included in the command, then this is set to True.
         #                      Otherwise, it is set to false.
-        help='If present, will evaluate classification performance on the test set every 500 training batches'
+        help='If present, will evaluate classification performance on the test set every 500 training batches. '
+        'This is useful if you also have --plot-train-curves present, as you will then have train/test curves to look at as training progresses.'
     )
     parser.add_argument(
         '--plot-augmentations',
@@ -98,72 +93,71 @@ if __name__ == '__main__':
         plot_images(data_vis_loader, args.batch_size, augmentation_name='collage', n_classes=n_classes)
         plot_images(data_vis_loader, args.batch_size, augmentation_name='mixup', n_classes=n_classes)
 
-    # Sample statistic to keep track of may be the test accuracies at the end of finetuning
-    final_test_accs = []
-
-    # For each dataset size, run pre-training and fine-tuning to evaluate performance
-    for pre_train_samples_per_class in PRETRAIN_SUBSAMPLE_SIZES:
-        # Instantiate our network
-        network = Net(
-            pre_train_classes=NUM_CLASSES_DICT[args.pre_train_dataset],
-            generalization_classes=NUM_CLASSES_DICT[args.finetune_dataset]
-        )
-
-        # Get the pre-training dataset with the appropriate number of samples per class
-        pre_train_data_subsample = pre_train_subsampled_datasets[pre_train_samples_per_class]
-
-        # Torch optimizer that will allow our network to learn
-        pre_train_optimizer = optim.SGD(network.parameters(), lr=0.01)
-
-        if args.augmentation not in list(AUGMENTATION_DICT.keys()):
-            raise ValueError("Only acceptable augmentations are \'mixup\' and \'collage\'")
-        augmentation = AUGMENTATION_DICT[args.augmentation]
-
+    all_augmentation_results = {}
+    for aug_str, augmentation in AUGMENTATION_DICT.items():
         # If we have an augmentation, then our class labels are no longer onehot.
         # As a result, we cannot do things like evaluate prediction accuracy easily.
         # To account for this, we create the `semisupervised` flag. When True, the training/testing functions will know
         #   that we do not have onehot labels.
-        if args.augmentation != 'no_aug':
+        if aug_str != 'no_aug':
             semisupervised = True
         else:
             semisupervised = False
 
-        # Run pre-training and store the losses/accuracies over training in variables
-        pretrain_train_losses, pretrain_train_accs, pretrain_test_losses, pretrain_test_accs = train(
-            network,
-            network.forward,
-            pre_train_optimizer,
-            semisupervised=semisupervised,
-            augmentation=augmentation,
-            train_dataset=pre_train_data_subsample,
-            test_dataset=pre_train_test_data,
-            test_during_training=args.test_during_training,
-            n_batches=args.n_batches_pre_train,
-            n_classes=NUM_CLASSES_DICT[args.pre_train_dataset],
-            plot_train_curves=args.plot_train_curves
-        )
+        augmentation_results = []
 
-        # Get the finetuning dataset and optimizer
-        data_subsample = finetune_subsampled_datasets[FINETUNE_SUBSAMPLE_SIZE]
-        optimizer = optim.SGD(network.generalizer.parameters(), lr=0.01)
+        # For each dataset size, run pre-training and fine-tuning to evaluate performance on this augmentation
+        for pre_train_samples_per_class in PRETRAIN_SUBSAMPLE_SIZES:
 
-        # Run finetuning and store the losses/accuracies over training in variables
-        finetune_train_losses, finetune_train_accs, finetune_test_losses, finetune_test_accs = train(
-            network,
-            network.generalize,
-            optimizer,
-            augmentation=None,
-            transform=None,
-            train_dataset=data_subsample,
-            test_dataset=finetune_test_data,
-            test_during_training=args.test_during_training,
-            test_forward_call=network.generalize,
-            n_batches=args.n_batches_finetune,
-            n_classes=NUM_CLASSES_DICT[args.finetune_dataset],
-            plot_train_curves=args.plot_train_curves
-        )
-        final_test_accs.append(finetune_test_accs)
+            # Get the pre-training dataset with the appropriate number of samples per class
+            pre_train_data_subsample = pre_train_subsampled_datasets[pre_train_samples_per_class]
 
-    # Sample way to view results:
-    #   "What are the final finetuning accuracies?"
-    print(final_test_accs)
+            # Instantiate our network
+            network = Net(
+                pre_train_classes=NUM_CLASSES_DICT[args.pre_train_dataset],
+                generalization_classes=NUM_CLASSES_DICT[args.finetune_dataset]
+            )
+
+            # Torch optimizer that will allow our network to learn
+            pre_train_optimizer = optim.SGD(network.parameters(), lr=0.01)
+
+            # Run pre-training and store the losses/accuracies over training in variables
+            pretrain_train_losses, pretrain_train_accs, pretrain_test_losses, pretrain_test_accs = train(
+                network,
+                network.forward,
+                pre_train_optimizer,
+                semisupervised=semisupervised,
+                augmentation=augmentation,
+                train_dataset=pre_train_data_subsample,
+                test_dataset=pre_train_test_data,
+                test_during_training=args.test_during_training,
+                n_batches=args.n_batches_pre_train,
+                n_classes=NUM_CLASSES_DICT[args.pre_train_dataset],
+                plot_train_curves=args.plot_train_curves
+            )
+
+            # Get the finetuning dataset and optimizer
+            data_subsample = finetune_subsampled_datasets[FINETUNE_SUBSAMPLE_SIZE]
+            optimizer = optim.SGD(network.generalizer.parameters(), lr=0.01)
+
+            # Run finetuning and store the losses/accuracies over training in variables
+            finetune_train_losses, finetune_train_accs, finetune_test_losses, finetune_test_accs = train(
+                network,
+                network.generalize,
+                optimizer,
+                augmentation=None,
+                transform=None,
+                train_dataset=data_subsample,
+                test_dataset=finetune_test_data,
+                test_during_training=args.test_during_training,
+                test_forward_call=network.generalize,
+                n_batches=args.n_batches_finetune,
+                n_classes=NUM_CLASSES_DICT[args.finetune_dataset],
+                plot_train_curves=args.plot_train_curves
+            )
+            augmentation_results.append(finetune_test_accs[-1])
+
+        augmentation_results = np.squeeze(np.array(augmentation_results))
+        all_augmentation_results[aug_str] = augmentation_results
+
+    plot_augmentation_results(all_augmentation_results, args.pre_train_dataset, args.finetune_dataset)
