@@ -1,7 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import torch
-from torchvision import datasets, transforms
+from torchvision import datasets
 from copy import deepcopy
 import torch.nn as nn
 import torch.nn.functional as F
@@ -146,7 +146,6 @@ if __name__ == '__main__':
                 network.generalize,
                 optimizer,
                 augmentation=None,
-                transform=None,
                 train_dataset=data_subsample,
                 test_dataset=finetune_test_data,
                 test_during_training=args.test_during_training,

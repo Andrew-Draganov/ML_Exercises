@@ -33,19 +33,45 @@ class Net(nn.Module):
         self.generalizer = nn.Linear(self.lin_size, self.generalization_classes)
 
     def apply_convs(self, x):
+        """
+        Extract convolutional features from the input
+        """
+        ### YOUR CODE HERE
         x = F.relu(F.max_pool2d(self.conv1(x), 2))
         x = F.relu(F.max_pool2d(self.conv2_drop(self.conv2(x)), 2))
+        ### END CODE
+
+        # Reshape the conv outputs so that we can apply linear layers to them
         x = x.view(-1, self.lin_size)
+
         return x
     
     def generalize(self, x):
+        """
+        Produce a prediction on x for finetuning.
+        We first extract the convolutional features and then apply the generalization head onto those.
+        """
+        ### YOUR CODE HERE
         x = self.apply_convs(x)
         x = self.generalizer(x)
+        ### END CODE
+
+        # Note: we use LOG SOFTMAX here, rather than just softmax.
+        # This must be consistent with the floating_point_nll_loss implementation
         return F.log_softmax(x, dim=-1)
         
     def forward(self, x):
+        """
+        Produce a prediction on x for pretraining
+        We first extract the convolutional features and then apply the finetuning head onto those.
+        """
+        ### YOUR CODE HERE
         x = self.apply_convs(x)
         x = self.fc1(x)
+        ### END CODE
+
+        # Note: we use LOG SOFTMAX here, rather than just softmax.
+        # This must be consistent with the floating_point_nll_loss implementation
         return F.log_softmax(x, dim=-1)
 
 
@@ -95,8 +121,8 @@ if __name__ == '__main__':
     test_network(n_samples=16, n_batches=2000, minimum_acc=0.9, maximum_loss=0.05, data_str=data_str)
 
     data_str = 'emnist'
-    test_network(n_samples=1, n_batches=500, minimum_acc=0.8, maximum_loss=0.5, data_str=data_str)
-    test_network(n_samples=4, n_batches=1000, minimum_acc=0.8, maximum_loss=0.5, data_str=data_str)
-    test_network(n_samples=16, n_batches=2000, minimum_acc=0.8, maximum_loss=0.5, data_str=data_str)
+    test_network(n_samples=1, n_batches=100, minimum_acc=0.8, maximum_loss=0.5, data_str=data_str)
+    test_network(n_samples=4, n_batches=2000, minimum_acc=0.8, maximum_loss=0.5, data_str=data_str)
+    test_network(n_samples=16, n_batches=4000, minimum_acc=0.8, maximum_loss=0.5, data_str=data_str)
 
     print('All simple network training tests passed!')

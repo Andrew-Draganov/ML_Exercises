@@ -83,7 +83,6 @@ def train(
     n_batches=5000,
     n_classes=-1,
     augmentation=None,
-    transform=None,
     train_dataset=None,
     test_dataset=None,
     test_during_training=False,

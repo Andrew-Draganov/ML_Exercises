@@ -21,7 +21,14 @@ def running_mean(vals, steps=30):
     return means
 
 def floating_point_nll_loss(pred, target):
-    """ STUDENTS CODE """
+    """
+    This is a by-hand implementation of the negative-log-likelihood loss.
+
+    The reason we need this done by hand is that Pytorch's implementation assumes onehot targets.
+    However, if we use an augmentation then we may have a target that is a linear combination of two classes.
+
+    NOTE: we assume that the network's prediction did LOG SOFTMAX.
+    """
     if not torch.is_tensor(pred) or not torch.is_tensor(target):
         raise ValueError('Floating point nll loss requires torch tensors for input')
     log_likelihoods = -pred * target
@@ -53,6 +60,9 @@ def test_floating_point_nll_loss():
     # Evaluate correctness of the loss on BATCHWISE pred-target inputs
     pred_batch = torch.squeeze(torch.from_numpy(predictions), dim=1)
     target_batch = torch.squeeze(torch.from_numpy(targets), dim=1)
+    loss = floating_point_nll_loss(pred_batch, target_batch).numpy()
+    np.testing.assert_equal(loss, np.mean(correct_outputs))
+
     loss = floating_point_nll_loss(pred_batch, target_batch).numpy()
     np.testing.assert_equal(loss, np.mean(correct_outputs))
 
