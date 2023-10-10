@@ -27,3 +27,35 @@ def floating_point_nll_loss(pred, target):
     log_likelihoods = -pred * target
     return torch.mean(torch.sum(log_likelihoods, dim=-1))
 
+
+def test_floating_point_nll_loss():
+    predictions = np.array([
+        [[1, 0]],
+        [[0.5, 0.5]],
+        [[0, 1]],
+        [[0.5, 0.5]]
+    ], dtype=np.float32)
+    targets = np.array([
+        [[1, 0]],
+        [[1, 0]],
+        [[0.5, 0.5]],
+        [[0.5, 0.5]]
+    ], dtype=np.float32)
+    correct_outputs = np.array([-1, -0.5, -0.5, -0.5])
+
+    # Evaluate correctness of the loss on SINGLE pred-target inputs
+    for pred, target, correct_output in zip(predictions, targets, correct_outputs):
+        pred = torch.tensor(pred)
+        target = torch.tensor(target)
+        loss = floating_point_nll_loss(pred, target).numpy()
+        np.testing.assert_equal(loss, correct_output)
+
+    # Evaluate correctness of the loss on BATCHWISE pred-target inputs
+    pred_batch = torch.squeeze(torch.from_numpy(predictions), dim=1)
+    target_batch = torch.squeeze(torch.from_numpy(targets), dim=1)
+    loss = floating_point_nll_loss(pred_batch, target_batch).numpy()
+    np.testing.assert_equal(loss, np.mean(correct_outputs))
+
+
+if __name__ == '__main__':
+    test_floating_point_nll_loss()

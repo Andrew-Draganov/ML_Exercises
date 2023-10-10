@@ -81,7 +81,17 @@ def plot_augmentation_results(all_aug_results, pretrain_data_str, finetune_data_
     """
     plt.xscale('log')
     plt.xticks(PRETRAIN_SUBSAMPLE_SIZES, labels=PRETRAIN_SUBSAMPLE_SIZES)
-    plt.ylim([0, 1.1])
+    min_y_val = np.min([
+        np.min(all_aug_results['no_aug']),
+        np.min(all_aug_results['mixup']),
+        np.min(all_aug_results['collage'])
+    ])
+    max_y_val = np.max([
+        np.max(all_aug_results['no_aug']),
+        np.max(all_aug_results['mixup']),
+        np.max(all_aug_results['collage'])
+    ])
+    plt.ylim([min_y_val * 0.9, max_y_val * 1.1])
 
     plt.ylabel('Finetune accuracy on {} dataset'.format(finetune_data_str))
     plt.xlabel('Number of samples per class for {} pretraining'.format(pretrain_data_str))

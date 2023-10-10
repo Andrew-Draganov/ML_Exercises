@@ -16,7 +16,7 @@ from network_training import train
 
 class Net(nn.Module):
     """
-    Neural network model that can pre-train on one image dataset and then be finetuned onto another image dataset.
+    Neural network model that can pre-train on one image dataset and then finetune onto another image dataset.
     """
     def __init__(self, pre_train_classes, generalization_classes):
         super(Net, self).__init__()
@@ -48,20 +48,24 @@ class Net(nn.Module):
         x = self.fc1(x)
         return F.log_softmax(x, dim=-1)
 
-def test_network(n_samples=1, n_batches=500, minimum_acc=0.9, maximum_loss=0.01):
+
+
+def test_network(n_samples=1, n_batches=500, minimum_acc=0.9, maximum_loss=0.05, data_str='mnist'):
     """
-    We default test the network by training it on the subsampled MNIST dataset with one sample per class.
-    This is a very easy task and your network should be able to obtain high accuracy on the training set.
+    We test that the network can train correctly by letting it learn a small subsample of the MNIST dataset.
+        - We default to 1 sample per class to make this a particularly easy task.
+    We expect that, in very few batches, the network gets high accuracy and low loss.
 
     Feel free to run this method with n_samples > 1 to check how well your network works.
     """
-    data_subsamples, test_dataset = get_dataset('mnist')
+    data_subsamples, test_dataset = get_dataset(data_str)
     try:
         toy_dataset = data_subsamples[n_samples]
     except KeyError:
         raise KeyError("There is no subsampled MNIST dataset with {} samples per class".format(n_samples))
 
-    network = Net(pre_train_classes=10, generalization_classes=10)
+    n_classes = NUM_CLASSES_DICT[data_str]
+    network = Net(pre_train_classes=n_classes, generalization_classes=n_classes)
     optimizer = optim.SGD(network.parameters(), lr=0.01)
 
     train_losses, train_accuracies, _, _ = train(
@@ -72,16 +76,27 @@ def test_network(n_samples=1, n_batches=500, minimum_acc=0.9, maximum_loss=0.01)
         test_dataset=test_dataset, # we don't care about test set when doing unit testing
         n_batches=n_batches,
         batch_size=8,
-        n_classes=10,
+        n_classes=n_classes,
     )
 
     try:
+        # train_losses and train_accuracies hold the losses and accuracies for every batch during training
+        # We only need high accuracy and low loss on the last batches during training
         np.testing.assert_array_less(train_losses[-1], maximum_loss)
         np.testing.assert_array_less(minimum_acc, train_accuracies[-1])
-        print('Simple network training test passed!')
     except AssertionError as E:
         raise E
 
 
 if __name__ == '__main__':
-    test_network(n_samples=1)
+    data_str = 'mnist'
+    test_network(n_samples=1, n_batches=500, minimum_acc=0.9, maximum_loss=0.05, data_str=data_str)
+    test_network(n_samples=4, n_batches=1000, minimum_acc=0.9, maximum_loss=0.05, data_str=data_str)
+    test_network(n_samples=16, n_batches=2000, minimum_acc=0.9, maximum_loss=0.05, data_str=data_str)
+
+    data_str = 'emnist'
+    test_network(n_samples=1, n_batches=500, minimum_acc=0.8, maximum_loss=0.5, data_str=data_str)
+    test_network(n_samples=4, n_batches=1000, minimum_acc=0.8, maximum_loss=0.5, data_str=data_str)
+    test_network(n_samples=16, n_batches=2000, minimum_acc=0.8, maximum_loss=0.5, data_str=data_str)
+
+    print('All simple network training tests passed!')
