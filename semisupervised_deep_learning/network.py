@@ -34,7 +34,14 @@ class Net(nn.Module):
 
     def apply_convs(self, x):
         """
-        Extract convolutional features from the input
+        Extract convolutional features from the input.
+
+        Our network has two layers of feature extraction. Each layer consists of:
+            - convolution on the features
+            - 2x2 max_pool on the conv output
+            - relu activation
+
+        Furthermore, we apply dropout after the second layer's convolutions to encourage generalization.
         """
         ### YOUR CODE HERE
         x = F.relu(F.max_pool2d(self.conv1(x), 2))
@@ -99,7 +106,7 @@ def test_network(n_samples=1, n_batches=500, minimum_acc=0.9, maximum_loss=0.05,
         forward_call=network,
         optimizer=optimizer,
         train_dataset=toy_dataset,
-        test_dataset=test_dataset, # we don't care about test set when doing unit testing
+        test_dataset=test_dataset, # we don't care about the test set when doing unit testing
         n_batches=n_batches,
         batch_size=8,
         n_classes=n_classes,
@@ -121,8 +128,8 @@ if __name__ == '__main__':
     test_network(n_samples=16, n_batches=2000, minimum_acc=0.9, maximum_loss=0.05, data_str=data_str)
 
     data_str = 'emnist'
-    test_network(n_samples=1, n_batches=100, minimum_acc=0.8, maximum_loss=0.5, data_str=data_str)
-    test_network(n_samples=4, n_batches=2000, minimum_acc=0.8, maximum_loss=0.5, data_str=data_str)
-    test_network(n_samples=16, n_batches=4000, minimum_acc=0.8, maximum_loss=0.5, data_str=data_str)
+    test_network(n_samples=1, n_batches=1000, minimum_acc=0.9, maximum_loss=0.5, data_str=data_str)
+    test_network(n_samples=4, n_batches=2000, minimum_acc=0.9, maximum_loss=0.5, data_str=data_str)
+    test_network(n_samples=16, n_batches=4000, minimum_acc=0.9, maximum_loss=1.0, data_str=data_str)
 
     print('All simple network training tests passed!')

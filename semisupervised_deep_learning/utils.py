@@ -27,12 +27,17 @@ def floating_point_nll_loss(pred, target):
     The reason we need this done by hand is that Pytorch's implementation assumes onehot targets.
     However, if we use an augmentation then we may have a target that is a linear combination of two classes.
 
-    NOTE: we assume that the network's prediction did LOG SOFTMAX.
+    NOTE: we assume that the network's output layer has a LOG-SOFTMAX.
     """
     if not torch.is_tensor(pred) or not torch.is_tensor(target):
         raise ValueError('Floating point nll loss requires torch tensors for input')
+
+    ### YOUR CODE HERE
     log_likelihoods = -pred * target
-    return torch.mean(torch.sum(log_likelihoods, dim=-1))
+    mean_log_likelihoods = torch.mean(torch.sum(log_likelihoods, dim=-1))
+    ### END CODE
+
+    return mean_log_likelihoods
 
 
 def test_floating_point_nll_loss():

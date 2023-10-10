@@ -80,7 +80,21 @@ def augment(augmentation, batch, labels, n_classes):
 
 
 def test_augmentations():
-    pass
+    im_1 = np.ones((1, 4, 4), dtype=np.float32)
+    im_2 = np.zeros((1, 4, 4), dtype=np.float32)
+
+    collage_output, collage_interpolation = collage(im_1, im_2)
+    mixup_output, mixup_interpolation = mixup(im_1, im_2)
+
+    np.testing.assert_array_equal(collage_output[0, :2, :2], 0)
+    np.testing.assert_array_equal(collage_output[0, 2:, :2], 1)
+    np.testing.assert_array_equal(collage_output[0, :2, 2:], 1)
+    np.testing.assert_array_equal(collage_output[0, 2:, 2:], 0)
+    np.testing.assert_equal(collage_interpolation, 0.5)
+
+    np.testing.assert_array_equal(mixup_output, np.ones_like(mixup_output) * mixup_interpolation)
+    np.testing.assert_array_less(mixup_interpolation, 1)
+    np.testing.assert_array_less(0, mixup_interpolation)
 
 
 if __name__ == '__main__':
