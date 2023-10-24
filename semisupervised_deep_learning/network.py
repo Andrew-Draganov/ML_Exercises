@@ -29,9 +29,11 @@ class Net(nn.Module):
         self.conv2_drop = nn.Dropout2d()
         self.lin_size = 256
 
-        self.fc1 = nn.Linear(self.lin_size, self.pre_train_classes)
+        self.pretrainer = nn.Linear(self.lin_size, self.pre_train_classes)
         self.generalizer = nn.Linear(self.lin_size, self.generalization_classes)
 
+    # FIXME -- exercise that shows they understand how these methods are being used and what's happening
+    #          no more than 5-10 lines
     def apply_convs(self, x):
         """
         Extract convolutional features from the input.
@@ -44,8 +46,11 @@ class Net(nn.Module):
         Furthermore, we apply dropout after the second layer's convolutions to encourage generalization.
         """
         ### YOUR CODE HERE
+        # FIXME -- is dropout necessary here?
+        # FIXME -- link to the nn.Functional API so that they know where to look
         x = F.relu(F.max_pool2d(self.conv1(x), 2))
-        x = F.relu(F.max_pool2d(self.conv2_drop(self.conv2(x)), 2))
+        # x = F.relu(F.max_pool2d(self.conv2_drop(self.conv2(x)), 2))
+        x = F.relu(F.max_pool2d(self.conv2(x), 2))
         ### END CODE
 
         # Reshape the conv outputs so that we can apply linear layers to them
@@ -64,7 +69,7 @@ class Net(nn.Module):
         ### END CODE
 
         # Note: we use LOG SOFTMAX here, rather than just softmax.
-        # This must be consistent with the floating_point_nll_loss implementation
+        # This must be consistent with the cross_entropy implementation
         return F.log_softmax(x, dim=-1)
         
     def forward(self, x):
@@ -74,11 +79,11 @@ class Net(nn.Module):
         """
         ### YOUR CODE HERE
         x = self.apply_convs(x)
-        x = self.fc1(x)
+        x = self.pretrainer(x)
         ### END CODE
 
         # Note: we use LOG SOFTMAX here, rather than just softmax.
-        # This must be consistent with the floating_point_nll_loss implementation
+        # This must be consistent with the cross_entropy implementation
         return F.log_softmax(x, dim=-1)
 
 

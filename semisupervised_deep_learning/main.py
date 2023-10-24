@@ -16,7 +16,6 @@ from get_data import \
         PRETRAIN_SUBSAMPLE_SIZES, \
         NUM_CLASSES_DICT
 from augmentations import collage, mixup, no_aug, augment, AUGMENTATION_DICT
-from utils import floating_point_nll_loss
 from plotting import plot_images, plot_augmentation_results
 from network_training import train
 from network import Net
@@ -99,6 +98,8 @@ if __name__ == '__main__':
         # As a result, we cannot do things like evaluate prediction accuracy easily.
         # To account for this, we create the `semisupervised` flag. When True, the training/testing functions will know
         #   that we do not have onehot labels.
+        print('\n')
+        print('Now using augmentation {}\n'.format(aug_str))
         if aug_str != 'no_aug':
             semisupervised = True
         else:
@@ -108,6 +109,7 @@ if __name__ == '__main__':
 
         # For each dataset size, run pre-training and fine-tuning to evaluate performance on this augmentation
         for pre_train_samples_per_class in PRETRAIN_SUBSAMPLE_SIZES:
+            print('Pretraining on {} with samples_per_class={}'.format(args.pre_train_dataset, pre_train_samples_per_class))
 
             # Get the pre-training dataset with the appropriate number of samples per class
             pre_train_data_subsample = pre_train_subsampled_datasets[pre_train_samples_per_class]
@@ -141,6 +143,7 @@ if __name__ == '__main__':
             optimizer = optim.SGD(network.generalizer.parameters(), lr=0.01)
 
             # Run finetuning and store the losses/accuracies over training in variables
+            print('Finetuning on {}'.format(args.finetune_dataset))
             finetune_train_losses, finetune_train_accs, finetune_test_losses, finetune_test_accs = train(
                 network,
                 network.generalize,
@@ -159,4 +162,5 @@ if __name__ == '__main__':
         augmentation_results = np.array(augmentation_results)
         all_augmentation_results[aug_str] = augmentation_results
 
+    # FIXME -- save to a file? Describe to them that they can save the image that gets output
     plot_augmentation_results(all_augmentation_results, args.pre_train_dataset, args.finetune_dataset)

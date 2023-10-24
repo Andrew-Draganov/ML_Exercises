@@ -20,17 +20,18 @@ def running_mean(vals, steps=30):
             means[i] = np.mean(vals[i-steps:i])
     return means
 
-def floating_point_nll_loss(pred, target):
+def cross_entropy(pred, target):
     """
-    This is a by-hand implementation of the negative-log-likelihood loss.
+    This is a by-hand implementation of the cross-entropy loss.
 
     The reason we need this done by hand is that Pytorch's implementation assumes onehot targets.
     However, if we use an augmentation then we may have a target that is a linear combination of two classes.
 
+    NOTE: pred and target both have shape [batch_size, n_classes]
     NOTE: we assume that the network's output layer has a LOG-SOFTMAX.
     """
     if not torch.is_tensor(pred) or not torch.is_tensor(target):
-        raise ValueError('Floating point nll loss requires torch tensors for input')
+        raise ValueError('X-Entropy loss requires torch tensors for input')
 
     ### YOUR CODE HERE
     log_likelihoods = -pred * target
@@ -40,7 +41,7 @@ def floating_point_nll_loss(pred, target):
     return mean_log_likelihoods
 
 
-def test_floating_point_nll_loss():
+def test_cross_entropy():
     predictions = np.array([
         [[1, 0]],
         [[0.5, 0.5]],
@@ -59,18 +60,18 @@ def test_floating_point_nll_loss():
     for pred, target, correct_output in zip(predictions, targets, correct_outputs):
         pred = torch.tensor(pred)
         target = torch.tensor(target)
-        loss = floating_point_nll_loss(pred, target).numpy()
+        loss = cross_entropy(pred, target).numpy()
         np.testing.assert_equal(loss, correct_output)
 
     # Evaluate correctness of the loss on BATCHWISE pred-target inputs
     pred_batch = torch.squeeze(torch.from_numpy(predictions), dim=1)
     target_batch = torch.squeeze(torch.from_numpy(targets), dim=1)
-    loss = floating_point_nll_loss(pred_batch, target_batch).numpy()
+    loss = cross_entropy(pred_batch, target_batch).numpy()
     np.testing.assert_equal(loss, np.mean(correct_outputs))
 
-    loss = floating_point_nll_loss(pred_batch, target_batch).numpy()
+    loss = cross_entropy(pred_batch, target_batch).numpy()
     np.testing.assert_equal(loss, np.mean(correct_outputs))
 
 
 if __name__ == '__main__':
-    test_floating_point_nll_loss()
+    test_cross_entropy()

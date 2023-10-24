@@ -6,7 +6,7 @@ import torch.nn.functional as F
 from plotting import plot_train_test
 
 from get_data import get_new_data_loader
-from utils import torch_onehot, floating_point_nll_loss
+from utils import torch_onehot, cross_entropy
 from augmentations import augment
 
 def train_step(
@@ -33,8 +33,8 @@ def train_step(
     output = forward_call(data)
     if len(target.shape) == 1:
         target = torch_onehot(target, n_classes)
-    # We use the floating_point_nll_loss because it generalizes the F.nll_loss onto non-onehot labels
-    error = floating_point_nll_loss(output, target)
+    # We use our own cross_entropy because it generalizes the F.nll_loss onto non-onehot labels
+    error = cross_entropy(output, target)
     error.backward()
     optimizer.step()
     

@@ -1,6 +1,6 @@
 from augmentations import test_augmentations
 from network import test_network
-from utils import test_floating_point_nll_loss
+from utils import test_cross_entropy
 
 if __name__ == '__main__':
     test_augmentations()
@@ -15,7 +15,7 @@ if __name__ == '__main__':
     test_network(n_samples=4, n_batches=2000, minimum_acc=0.9, maximum_loss=0.5, data_str=data_str)
     test_network(n_samples=16, n_batches=4000, minimum_acc=0.9, maximum_loss=1.0, data_str=data_str)
 
-    test_floating_point_nll_loss()
+    test_cross_entropy()
 
     print(
         'All tests passed! '

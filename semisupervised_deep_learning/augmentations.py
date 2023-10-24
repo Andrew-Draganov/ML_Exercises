@@ -40,7 +40,7 @@ def mixup(batch_i, batch_j, alpha=0.3):
 
 def no_aug(batch_i, batch_j):
     """ STUDENTS CODE """
-    return batch_i, batch_j
+    return batch_i, 0
 
 AUGMENTATION_DICT = {
     'mixup': mixup,

@@ -7,7 +7,7 @@ from get_data import PRETRAIN_SUBSAMPLE_SIZES
 
 def plot_images(data_loader, batch_size, augmentation_name, n_classes):
     train_generator = enumerate(data_loader)
-    batch_idx, (samples, targets) = next(train_generator)
+    _, (samples, targets) = next(train_generator)
     augmentation = AUGMENTATION_DICT[augmentation_name]
     aug_samples, _ = augment(augmentation, samples, targets, n_classes)
     samples = np.concatenate([samples, aug_samples], axis=0)
