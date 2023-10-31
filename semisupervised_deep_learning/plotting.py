@@ -1,7 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-from utils import running_mean
+from utils import running_mean, np_onehot
 from augmentations import augment, AUGMENTATION_DICT
 from get_data import PRETRAIN_SUBSAMPLE_SIZES
 
@@ -9,19 +9,30 @@ def plot_images(data_loader, batch_size, augmentation_name, n_classes):
     train_generator = enumerate(data_loader)
     _, (samples, targets) = next(train_generator)
     augmentation = AUGMENTATION_DICT[augmentation_name]
-    aug_samples, _ = augment(augmentation, samples, targets, n_classes)
+    aug_samples, interpolated_labels = augment(augmentation, samples, targets, n_classes)
     samples = np.concatenate([samples, aug_samples], axis=0)
     fig = plt.figure()
     r = 6
     for i in range(r):
         plt.subplot(2, 3, i+1)
-
         plt.tight_layout()
         plt.imshow(samples[i][0], cmap='gray', interpolation='none')
         if i < 3:
             plt.title("Ground Truth: {}".format(targets[i]))
         else:
-            plt.title('Aug: {}'.format(augmentation_name))
+            labels = interpolated_labels[i - 3]
+            print(labels)
+            pos_labels = np.where(labels > 0)[0]
+            if augmentation_name == 'no_aug':
+                assert len(pos_labels) == 1
+                plot_title = 'No Augmentation'
+            else:
+                assert 0 < len(pos_labels) <= 2
+                if len(pos_labels) == 2:
+                    plot_title = '{}:\nclass {} and {}'.format(augmentation_name, pos_labels[0], pos_labels[1])
+                else:
+                    plot_title = '{}:\nclass {} and {}'.format(augmentation_name, pos_labels[0], pos_labels[0])
+            plt.title(plot_title)
 
         plt.xticks([])
         plt.yticks([])

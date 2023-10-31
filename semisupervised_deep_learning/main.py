@@ -87,7 +87,7 @@ if __name__ == '__main__':
     # Make sure to include `--plot-augmentations` when running this file if you'd like to see the augmentations
     if args.plot_augmentations:
         data_vis_loader = get_new_data_loader(pre_train_test_data, batch_size=3)
-        n_classes = NUM_CLASSES_DICT[args.finetune_dataset]
+        n_classes = NUM_CLASSES_DICT[args.pre_train_dataset]
         plot_images(data_vis_loader, batch_size=args.batch_size, augmentation_name='no_aug', n_classes=n_classes)
         plot_images(data_vis_loader, args.batch_size, augmentation_name='collage', n_classes=n_classes)
         plot_images(data_vis_loader, args.batch_size, augmentation_name='mixup', n_classes=n_classes)

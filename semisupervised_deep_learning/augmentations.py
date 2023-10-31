@@ -40,7 +40,7 @@ def mixup(batch_i, batch_j, alpha=0.3):
 
 def no_aug(batch_i, batch_j):
     """ STUDENTS CODE """
-    return batch_i, 0
+    return batch_i, 1
 
 AUGMENTATION_DICT = {
     'mixup': mixup,
@@ -72,11 +72,13 @@ def augment(augmentation, batch, labels, n_classes):
         
     images = torch.tensor(new_batch)
     interpolations = np.expand_dims(interpolations, 1) # for correct broadcasting
-    labels = interpolations * np_onehot(labels, n_classes)
-    labels += (1 - interpolations) * np_onehot(merge_indices, n_classes)
-    labels = torch.tensor(labels)
+    merged_labels = labels[merge_indices]
 
-    return images, labels
+    targets = interpolations * np_onehot(labels, n_classes)
+    targets += (1 - interpolations) * np_onehot(merged_labels, n_classes)
+    targets = torch.tensor(targets)
+
+    return images, targets
 
 
 def test_augmentations():
