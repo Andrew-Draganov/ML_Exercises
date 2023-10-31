@@ -40,7 +40,7 @@ class Net(nn.Module):
 
         Our network has two layers of feature extraction. Each layer consists of:
             - convolution on the features
-            - 2x2 max_pool on the conv output
+            - 2x2 max_pool on the conv output (with stride 2)
             - relu activation
 
         Furthermore, we apply dropout after the second layer's convolutions to encourage generalization.
