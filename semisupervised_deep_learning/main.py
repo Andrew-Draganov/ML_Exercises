@@ -162,5 +162,4 @@ if __name__ == '__main__':
         augmentation_results = np.array(augmentation_results)
         all_augmentation_results[aug_str] = augmentation_results
 
-    # FIXME -- save to a file? Describe to them that they can save the image that gets output
     plot_augmentation_results(all_augmentation_results, args.pre_train_dataset, args.finetune_dataset)

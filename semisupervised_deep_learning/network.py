@@ -32,8 +32,6 @@ class Net(nn.Module):
         self.pretrainer = nn.Linear(self.lin_size, self.pre_train_classes)
         self.generalizer = nn.Linear(self.lin_size, self.generalization_classes)
 
-    # FIXME -- exercise that shows they understand how these methods are being used and what's happening
-    #          no more than 5-10 lines
     def apply_convs(self, x):
         """
         Extract convolutional features from the input.
@@ -46,8 +44,6 @@ class Net(nn.Module):
         Furthermore, we apply dropout after the second layer's convolutions to encourage generalization.
         """
         ### YOUR CODE HERE
-        # FIXME -- is dropout necessary here?
-        # FIXME -- link to the nn.Functional API so that they know where to look
         x = F.relu(F.max_pool2d(self.conv1(x), 2))
         # x = F.relu(F.max_pool2d(self.conv2_drop(self.conv2(x)), 2))
         x = F.relu(F.max_pool2d(self.conv2(x), 2))
