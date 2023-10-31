@@ -21,7 +21,6 @@ def plot_images(data_loader, batch_size, augmentation_name, n_classes):
             plt.title("Ground Truth: {}".format(targets[i]))
         else:
             labels = interpolated_labels[i - 3]
-            print(labels)
             pos_labels = np.where(labels > 0)[0]
             if augmentation_name == 'no_aug':
                 assert len(pos_labels) == 1
